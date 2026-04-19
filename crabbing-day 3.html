@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1e3a5f">
+    <title>Rhyl Crabbing Day Plan</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+        :root {
+            --primary: #1e3a5f;
+            --secondary: #2c5282;
+            --accent: #ed8936;
+            --accent-light: #f6ad55;
+            --success: #38a169;
+            --card-bg: #ffffff;
+            --text: #2d3748;
+            --text-light: #718096;
+        }
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(180deg, #87CEEB 0%, #B0E0E6 50%, #E0F7FA 100%);
+            min-height: 100vh;
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        #fireworksCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+        .ocean-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .bubble {
+            position: absolute;
+            bottom: -50px;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4), rgba(255,255,255,0.1));
+            border-radius: 50%;
+            animation: rise linear infinite;
+        }
+        @keyframes rise {
+            0% { transform: translateY(0) translateX(0); opacity: 0.7; }
+            50% { transform: translateY(-50vh) translateX(20px); }
+            100% { transform: translateY(-110vh) translateX(-10px); opacity: 0; }
+        }
+        .floating-crab {
+            position: fixed;
+            font-size: 36px;
+            z-index: 100;
+            cursor: pointer;
+            animation: floatCrab 4s ease-in-out infinite;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+            transition: all 0.5s;
+        }
+        @keyframes floatCrab {
+            0%, 100% { transform: translateY(0) rotate(-5deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            padding-bottom: 80px;
+            position: relative;
+            z-index: 10;
+        }
+        .header {
+            text-align: center;
+            padding: 30px 20px 20px;
+            color: #1e3a5f;
+        }
+        .header-badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.15);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.75em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2em;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .crab-icon {
+            font-size: 60px;
+            display: block;
+            margin: 15px auto;
+            cursor: pointer;
+            animation: crabIdle 2s ease-in-out infinite;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+        }
+        @keyframes crabIdle {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-8px) rotate(5deg); }
+            75% { transform: translateY(-4px) rotate(-5deg); }
+        }
+        .header-subtitle { font-size: 0.9em; opacity: 0.9; }
+        .level-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 8px 20px;
+            border-radius: 30px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85em;
+            margin-top: 15px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.3s;
+        }
+        .level-badge.level-up { animation: levelUp 0.6s ease-out; }
+        @keyframes levelUp { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+        .xp-container { background: rgba(255,255,255,0.2); border-radius: 10px; height: 10px; margin-top: 10px; overflow: hidden; }
+        .xp-bar {
+            background: linear-gradient(90deg, #f6ad55, #ed8936);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.5s ease-out;
+            width: 0%;
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .card-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+        }
+        .card-title { font-size: 1.05em; font-weight: 600; color: var(--primary); }
+        .mission-card { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .mission-card .card-header { border-bottom-color: rgba(255,255,255,0.2); }
+        .mission-card .card-icon { background: rgba(255,255,255,0.2); }
+        .mission-card .card-title { color: white; }
+        .mission-list, .checklist { list-style: none; }
+        .mission-item, .check-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            cursor: pointer;
+            transition: all 0.3s;
+            border-radius: 8px;
+        }
+        .check-item {
+            border-bottom: 2px solid #e2e8f0;
+            padding: 12px 10px;
+            margin: 2px 0;
+        }
+        .mission-item:active, .check-item:active { background: rgba(255,255,255,0.1); padding-left: 8px; }
+        .check-item:active { background: #f8fafc; }
+        .mission-item:last-child, .check-item:last-child { border-bottom: none; }
+        .mission-num {
+            width: 28px; height: 28px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.85em;
+            flex-shrink: 0;
+            transition: all 0.3s;
+        }
+        .mission-item.checked .mission-num { background: #ffd700; color: var(--primary); }
+        .mission-item.checked .mission-text { text-decoration: line-through; opacity: 0.7; }
+        .check-box {
+            width: 28px; height: 28px;
+            border: 2px solid #4a5568;
+            border-radius: 8px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            background: #f8fafc;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .check-item.checked .check-box { background: #22c55e; border-color: #16a34a; animation: checkPop 0.3s ease-out; box-shadow: 0 2px 4px rgba(34, 197, 94, 0.3); }
+        @keyframes checkPop { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+        .check-item.checked .check-box::after { content: '✓'; color: white; font-weight: bold; font-size: 0.85em; }
+        .check-item.checked .check-text { text-decoration: line-through; opacity: 0.6; }
+        .check-item.checked { background: #f0fdf4; }
+        .timeline { position: relative; padding-left: 26px; }
+        .timeline::before { content: ''; position: absolute; left: 6px; top: 6px; bottom: 6px; width: 2px; background: #e2e8f0; }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 18px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        .timeline-item:active { transform: scale(0.97); background: #edf2f7; }
+        .timeline-item.done { opacity: 0.5; background: linear-gradient(135deg, #f0fff4, #c6f6d5); border-color: #9ae6b4; }
+        .timeline-item.done::before { background: var(--success); box-shadow: 0 0 0 3px var(--success); }
+        .timeline-item:last-child { margin-bottom: 0; }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -22px; top: 50%;
+            transform: translateY(-50%);
+            width: 10px; height: 10px;
+            background: var(--accent);
+            border-radius: 50%;
+            border: 3px solid var(--card-bg);
+            box-shadow: 0 0 0 2px var(--accent);
+            transition: all 0.3s;
+        }
+        .timeline-time { font-size: 0.7em; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent); font-weight: 600; margin-bottom: 2px; }
+        .timeline-title { font-weight: 600; color: var(--primary); font-size: 0.9em; }
+        .timeline-desc { font-size: 0.8em; color: var(--text-light); }
+        .method-step { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: all 0.3s; }
+        .method-step:active { background: #f8fafc; padding-left: 6px; }
+        .method-step:last-child { border-bottom: none; padding-bottom: 0; }
+        .method-num { width: 26px; height: 26px; background: var(--primary); color: white; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.8em; flex-shrink: 0; transition: all 0.3s; }
+        .method-step.done .method-num { background: var(--success); }
+        .method-content h4 { font-size: 0.9em; color: var(--primary); margin-bottom: 1px; }
+        .method-content p { font-size: 0.8em; color: var(--text-light); }
+        .tip { background: linear-gradient(135deg, #f0fff4, #c6f6d5); border-radius: 10px; padding: 12px; margin-bottom: 10px; display: flex; gap: 10px; cursor: pointer; transition: all 0.3s; border: 2px solid transparent; }
+        .tip:active { transform: scale(0.98); }
+        .tip.done { opacity: 0.5; background: #e2e8f0; border-color: #cbd5e0; }
+        .tip:last-child { margin-bottom: 0; }
+        .tip-icon { font-size: 1.2em; flex-shrink: 0; }
+        .tip h4 { font-size: 0.85em; color: #276749; margin-bottom: 1px; }
+        .tip p { font-size: 0.8em; color: #2f8554; }
+        .food-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .food-item { background: #f8fafc; border-radius: 10px; padding: 14px 10px; text-align: center; border: 2px solid #e2e8f0; cursor: pointer; transition: all 0.3s; }
+        .food-item:active { transform: scale(0.95); }
+        .food-item.selected { border-color: var(--accent); background: #fffaf0; animation: foodPulse 0.3s ease-out; }
+        @keyframes foodPulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        .food-emoji { font-size: 1.8em; margin-bottom: 4px; transition: transform 0.3s; }
+        .food-item.selected .food-emoji { transform: scale(1.2); }
+        .food-name { font-weight: 600; font-size: 0.85em; color: var(--primary); margin-bottom: 2px; }
+        .food-why { font-size: 0.7em; color: var(--text-light); }
+        .progress-container { background: #e2e8f0; border-radius: 10px; height: 10px; margin-top: 14px; overflow: hidden; }
+        .progress-bar { background: linear-gradient(90deg, var(--success), #48bb78); height: 100%; border-radius: 10px; transition: width 0.4s ease-out; width: 0%; }
+        .progress-text { font-size: 0.8em; color: var(--text-light); text-align: center; margin-top: 8px; }
+        .safety-item { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; }
+        .safety-icon { font-size: 1.2em; flex-shrink: 0; }
+        .safety-text { font-size: 0.85em; color: var(--text); }
+        .tip-widget { background: linear-gradient(135deg, var(--accent), var(--accent-light)); border-radius: 12px; padding: 14px; margin-bottom: 14px; cursor: pointer; transition: all 0.3s; }
+        .tip-widget:active { transform: scale(0.98); }
+        .tip-widget-content { display: flex; align-items: center; gap: 10px; }
+        .tip-widget-icon { font-size: 1.5em; }
+        .tip-widget-text { color: white; font-size: 0.9em; }
+        .tip-widget-hint { color: rgba(255,255,255,0.8); font-size: 0.7em; margin-top: 4px; }
+        .footer { text-align: center; padding: 25px 20px; color: #4a5568; font-size: 0.8em; }
+        .footer-brand { font-weight: 600; color: #2d3748; margin-bottom: 4px; }
+        .confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 998; }
+        .confetti-piece { position: absolute; width: 10px; height: 10px; top: -20px; animation: confettiFall linear forwards; }
+        @keyframes confettiFall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .card { animation: fadeUp 0.5s ease-out backwards; }
+        .card:nth-child(1) { animation-delay: 0.1s; }
+        .card:nth-child(2) { animation-delay: 0.15s; }
+        .card:nth-child(3) { animation-delay: 0.2s; }
+        .card:nth-child(4) { animation-delay: 0.25s; }
+        .card:nth-child(5) { animation-delay: 0.3s; }
+        .card:nth-child(6) { animation-delay: 0.35s; }
+        .card:nth-child(7) { animation-delay: 0.4s; }
+    </style>
+</head>
+<body>
+    <canvas id="fireworksCanvas"></canvas>
+    <div class="confetti-container" id="confettiContainer"></div>
+    <div class="ocean-bg" id="oceanBg"></div>
+    <div class="floating-crab" id="floatingCrab" onclick="crabClick()">🦀</div>
+    
+    <div class="container">
+        <div class="header">
+            <div class="header-badge">Adventure Plan</div>
+            <h1>Rhyl Crabbing Day</h1>
+            <span class="crab-icon" id="crabIcon">🦀</span>
+            <p class="header-subtitle">Marine Lake for gear → Rhyl Harbour!</p>
+            <div class="level-badge" id="levelBadge">
+                <span id="levelIcon">🌱</span>
+                <span id="levelText">Beginner Crabber</span>
+            </div>
+            <div class="xp-container">
+                <div class="xp-bar" id="xpBar" style="width: 0%"></div>
+            </div>
+        </div>
+        
+        <div class="tip-widget" onclick="showRandomTip()">
+            <div class="tip-widget-content">
+                <div class="tip-widget-icon">🎲</div>
+                <div>
+                    <div class="tip-widget-text" id="randomTipText">Tap for a random crab fact!</div>
+                    <div class="tip-widget-hint">Shake your phone for a surprise!</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mission-card">
+            <div class="card-header">
+                <div class="card-icon">🎯</div>
+                <div class="card-title">Mission Checklist</div>
+            </div>
+            <ul class="mission-list">
+                <li class="mission-item" onclick="toggleMission(this)"><div class="mission-num">1</div><span class="mission-text">Catch 3 crabs</span></li>
+                <li class="mission-item" onclick="toggleMission(this)"><div class="mission-num">2</div><span class="mission-text">Find the biggest one</span></li>
+                <li class="mission-item" onclick="toggleMission(this)"><div class="mission-num">3</div><span class="mission-text">Take a victory photo</span></li>
+                <li class="mission-item" onclick="toggleMission(this)"><div class="mission-num">4</div><span class="mission-text">Release them gently</span></li>
+            </ul>
+        </div>
+        
+        <div class="card">
+            <div class="card-header"><div class="card-icon">📍</div><div class="card-title">Your Day Plan</div></div>
+            <div class="timeline">
+                <div class="timeline-item" onclick="toggleTimeline(this)"><div class="timeline-time">🚗 Late Morning</div><div class="timeline-title">Leave for Rhyl</div><div class="timeline-desc">Head to Rhyl!</div></div>
+                <div class="timeline-item" onclick="toggleTimeline(this)"><div class="timeline-time">🛒 Stop 1 • 15-20 min</div><div class="timeline-title">Buy Bucket, Line & Bait</div><div class="timeline-desc">Near Marine Lake!</div></div>
+                <div class="timeline-item" onclick="toggleTimeline(this)"><div class="timeline-time">⛵ Stop 2 • 1-2 hours</div><div class="timeline-title">Rhyl Harbour</div><div class="timeline-desc">Crab beside walls & rocks</div></div>
+                <div class="timeline-item" onclick="toggleTimeline(this)"><div class="timeline-time">🍽️ Afterward</div><div class="timeline-title">Food Time!</div><div class="timeline-desc">Fish & chips, ice cream!</div></div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header"><div class="card-icon">🎣</div><div class="card-title">Key Crabbing Method</div></div>
+            <div class="method-step" onclick="toggleMethod(this)"><div class="method-num">1</div><div class="method-content"><h4>Find the Right Spot</h4><p>Wall drops straight into water</p></div></div>
+            <div class="method-step" onclick="toggleMethod(this)"><div class="method-num">2</div><div class="method-content"><h4>Lower the Bait</h4><p>Straight down beside the wall</p></div></div>
+            <div class="method-step" onclick="toggleMethod(this)"><div class="method-num">3</div><div class="method-content"><h4>Be Patient</h4><p>Wait 1-2 min, lift slowly</p></div></div>
+            <div class="method-step" onclick="toggleMethod(this)"><div class="method-num">4</div><div class="method-content"><h4>No Throwing!</h4><p>Never throw into open water</p></div></div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header"><div class="card-icon">💡</div><div class="card-title">Tips to Catch More</div></div>
+            <div class="tip" onclick="toggleTip(this)"><div class="tip-icon">🥓</div><div><h4>Use Bacon</h4><p>Works really well for shore crabs!</p></div></div>
+            <div class="tip" onclick="toggleTip(this)"><div class="tip-icon">📍</div><div><h4>Move If Quiet</h4><p>Try another spot after 5-10 min</p></div></div>
+            <div class="tip" onclick="toggleTip(this)"><div class="tip-icon">🪣</div><div><h4>Keep Sea Water</h4><p>Release crabs gently after looking!</p></div></div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header"><div class="card-icon">🍽️</div><div class="card-title">Best Food After Crabbing</div></div>
+            <div class="food-grid">
+                <div class="food-item" onclick="toggleFood(this)"><div class="food-emoji">🍟</div><div class="food-name">Fish & Chips</div><div class="food-why">Best seaside meal</div></div>
+                <div class="food-item" onclick="toggleFood(this)"><div class="food-emoji">🍦</div><div class="food-name">Ice Cream</div><div class="food-why">Easy reward</div></div>
+                <div class="food-item" onclick="toggleFood(this)"><div class="food-emoji">☕</div><div class="food-name">Hot Drink</div><div class="food-why">Smart backup</div></div>
+                <div class="food-item" onclick="toggleFood(this)"><div class="food-emoji">🍩</div><div class="food-name">Doughnuts</div><div class="food-why">Quick option</div></div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header"><div class="card-icon">🎒</div><div class="card-title">Before You Leave the Car</div></div>
+            <ul class="checklist">
+                <li class="check-item" onclick="togglePacking(this)"><div class="check-box"></div><span class="check-text">Bucket</span></li>
+                <li class="check-item" onclick="togglePacking(this)"><div class="check-box"></div><span class="check-text">Line / String</span></li>
+                <li class="check-item" onclick="togglePacking(this)"><div class="check-box"></div><span class="check-text">Bacon or Bait</span></li>
+                <li class="check-item" onclick="togglePacking(this)"><div class="check-box"></div><span class="check-text">Wipes or Towel</span></li>
+                <li class="check-item" onclick="togglePacking(this)"><div class="check-box"></div><span class="check-text">Snack / Drink</span></li>
+            </ul>
+            <div class="progress-container"><div class="progress-bar" id="packingProgress"></div></div>
+            <div class="progress-text" id="packingText">0 of 5 packed</div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header"><div class="card-icon">⚠️</div><div class="card-title">Safety First</div></div>
+            <div class="safety-item"><div class="safety-icon">👀</div><div class="safety-text">Keep children close to the edge and away from slippery spots</div></div>
+            <div class="safety-item"><div class="safety-icon">🚫</div><div class="safety-text">Do not lean too far over when lowering the line</div></div>
+            <div class="safety-item"><div class="safety-icon">🪨</div><div class="safety-text">Watch out for wet stones, seaweed and harbour steps</div></div>
+        </div>
+        
+        <div class="footer">
+            <div class="footer-brand">🦀 Crabbing Day Plan</div>
+            <div>Have an amazing adventure!</div>
+        </div>
+    </div>
+    
+    <script>
+    // ===== FIREWORKS SYSTEM =====
+    const canvas = document.getElementById('fireworksCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    class Particle {
+        constructor(x, y, color, isRocket = false) {
+            this.x = x;
+            this.y = y;
+            this.color = color;
+            this.isRocket = isRocket;
+            if (isRocket) {
+                this.vx = (Math.random() - 0.5) * 3;
+                this.vy = -12 - Math.random() * 5;
+                this.size = 4;
+                this.life = 60;
+                this.gravity = 0.15;
+            } else {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 2 + Math.random() * 6;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.size = 2 + Math.random() * 2;
+                this.life = 40 + Math.random() * 40;
+                this.gravity = 0.05;
+                this.trail = [];
+            }
+            this.maxLife = this.life;
+        }
+        
+        update() {
+            if (this.isRocket) {
+                this.vy += this.gravity;
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life--;
+            } else {
+                this.trail.push({x: this.x, y: this.y});
+                if (this.trail.length > 5) this.trail.shift();
+                this.vx *= 0.98;
+                this.vy *= 0.98;
+                this.vy += this.gravity;
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life--;
+            }
+        }
+        
+        draw() {
+            if (this.isRocket) {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            } else {
+                // Draw trail
+                for (let i = 0; i < this.trail.length; i++) {
+                    const t = this.trail[i];
+                    const alpha = (i / this.trail.length) * (this.life / this.maxLife) * 0.5;
+                    ctx.beginPath();
+                    ctx.arc(t.x, t.y, this.size * 0.5, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color.replace('1)', alpha + ')');
+                    ctx.fill();
+                }
+                // Draw particle
+                const alpha = this.life / this.maxLife;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size * alpha, 0, Math.PI * 2);
+                ctx.fillStyle = this.color.replace('1)', alpha + ')');
+                ctx.fill();
+            }
+        }
+    }
+    
+    class Firework {
+        constructor(x, y, targetY, colors) {
+            this.x = x;
+            this.y = y;
+            this.targetY = targetY;
+            this.colors = colors || ['rgba(255,50,50,1)', 'rgba(255,200,50,1)', 'rgba(255,100,100,1)', 'rgba(255,150,50,1)'];
+            this.rocket = new Particle(x, y, 'rgba(255,255,255,1)', true);
+            this.exploded = false;
+            this.particles = [];
+        }
+        
+        update() {
+            if (!this.exploded) {
+                this.rocket.update();
+                if (this.rocket.vy >= 0 || this.rocket.life <= 0) {
+                    this.explode();
+                }
+            } else {
+                this.particles = this.particles.filter(p => p.life > 0);
+                this.particles.forEach(p => p.update());
+            }
+        }
+        
+        explode() {
+            this.exploded = true;
+            const color = this.colors[Math.floor(Math.random() * this.colors.length)];
+            for (let i = 0; i < 80; i++) {
+                this.particles.push(new Particle(this.rocket.x, this.rocket.y, color));
+            }
+            // Add some sparkles
+            for (let i = 0; i < 20; i++) {
+                this.particles.push(new Particle(this.rocket.x, this.rocket.y, 'rgba(255,255,255,1)'));
+            }
+        }
+        
+        draw() {
+            if (!this.exploded) {
+                this.rocket.draw();
+            } else {
+                this.particles.forEach(p => p.draw());
+            }
+        }
+        
+        isDone() {
+            return this.exploded && this.particles.length === 0;
+        }
+    }
+    
+    let fireworks = [];
+    let fireworkInterval = null;
+    
+    function launchFireworks(count, colors, spread = true) {
+        for (let i = 0; i < count; i++) {
+            setTimeout(() => {
+                const x = spread ? canvas.width * 0.2 + Math.random() * canvas.width * 0.6 : canvas.width / 2;
+                const startY = canvas.height;
+                const targetY = spread ? canvas.height * 0.2 + Math.random() * canvas.height * 0.3 : canvas.height * 0.3;
+                fireworks.push(new Firework(x, startY, targetY, colors));
+            }, i * (spread ? 100 : 50));
+        }
+    }
+    
+    function launchMasterCrabFireworks() {
+        // Epic finale - lots of fireworks in waves
+        const colorSets = [
+            ['rgba(255,50,50,1)', 'rgba(255,100,100,1)', 'rgba(255,150,150,1)'], // Red
+            ['rgba(50,255,50,1)', 'rgba(100,255,100,1)', 'rgba(150,255,150,1)'], // Green
+            ['rgba(255,255,50,1)', 'rgba(255,200,50,1)', 'rgba(255,150,50,1)'], // Gold
+            ['rgba(50,50,255,1)', 'rgba(100,100,255,1)', 'rgba(150,150,255,1)'], // Blue
+            ['rgba(255,50,255,1)', 'rgba(200,100,255,1)', 'rgba(255,150,255,1)'], // Purple
+            ['rgba(255,150,50,1)', 'rgba(255,200,100,1)', 'rgba(255,100,50,1)'], // Orange
+        ];
+        
+        // Wave 1 - bottom
+        launchFireworks(6, colorSets[Math.floor(Math.random() * colorSets.length)], true);
+        
+        setTimeout(() => {
+            // Wave 2 - middle
+            launchFireworks(8, colorSets[Math.floor(Math.random() * colorSets.length)], true);
+        }, 300);
+        
+        setTimeout(() => {
+            // Wave 3 - top with gold
+            launchFireworks(10, colorSets[2], true); // Gold
+        }, 600);
+        
+        setTimeout(() => {
+            // Wave 4 - rainbow burst
+            colorSets.forEach((colors, i) => {
+                setTimeout(() => launchFireworks(2, colors, true), i * 100);
+            });
+        }, 900);
+        
+        setTimeout(() => {
+            // Final wave - massive burst
+            launchFireworks(12, colorSets[2], true);
+        }, 1500);
+    }
+    
+    function animateFireworks() {
+        ctx.fillStyle = 'rgba(135, 206, 235, 0.1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        fireworks = fireworks.filter(f => !f.isDone());
+        fireworks.forEach(f => {
+            f.update();
+            f.draw();
+        });
+        
+        if (fireworks.length > 0) {
+            requestAnimationFrame(animateFireworks);
+        }
+    }
+    
+    function triggerFireworks() {
+        if (fireworkInterval) return;
+        launchMasterCrabFireworks();
+        animateFireworks();
+        fireworkInterval = setInterval(() => {
+            if (fireworks.length < 20) {
+                launchFireworks(3, ['rgba(255,200,50,1)', 'rgba(255,100,50,1)', 'rgba(255,50,100,1)'], true);
+            }
+        }, 500);
+        setTimeout(() => {
+            clearInterval(fireworkInterval);
+            fireworkInterval = null;
+        }, 8000);
+    }
+    
+    // ===== OCEAN BACKGROUND =====
+    function createOcean() {
+        const bg = document.getElementById('oceanBg');
+        for (let i = 0; i < 10; i++) {
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble';
+            bubble.style.left = Math.random() * 100 + '%';
+            bubble.style.width = bubble.style.height = (5 + Math.random() * 10) + 'px';
+            bubble.style.animationDuration = (5 + Math.random() * 8) + 's';
+            bubble.style.animationDelay = Math.random() * 5 + 's';
+            bg.appendChild(bubble);
+        }
+    }
+    createOcean();
+    
+    // ===== FLOATING CRAB =====
+    function moveFloatingCrab() {
+        const crab = document.getElementById('floatingCrab');
+        crab.style.left = (10 + Math.random() * 70) + '%';
+        crab.style.top = (20 + Math.random() * 60) + '%';
+    }
+    setInterval(moveFloatingCrab, 4000);
+    
+    function crabClick() {
+        const crab = document.getElementById('floatingCrab');
+        crab.style.animation = 'none';
+        crab.offsetHeight;
+        crab.style.animation = 'crabSnap 0.5s ease-out';
+        addXP(1);
+        openChat(); // Open the AI chat!
+    }
+    
+    // ===== CONFETTI =====
+    function createConfetti(count) {
+        const container = document.getElementById('confettiContainer');
+        const colors = ['#ff6b6b', '#4ecdc4', '#ffe66d', '#95e1d3', '#f38181', '#aa96da', '#ffd700'];
+        for (let i = 0; i < count; i++) {
+            const piece = document.createElement('div');
+            piece.className = 'confetti-piece';
+            piece.style.left = Math.random() * 100 + '%';
+            piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+            piece.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+            piece.style.width = (5 + Math.random() * 10) + 'px';
+            piece.style.height = (5 + Math.random() * 10) + 'px';
+            piece.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+            container.appendChild(piece);
+            setTimeout(() => piece.remove(), 3500);
+        }
+    }
+    
+    // ===== LEVEL SYSTEM =====
+    const levels = [
+        { name: 'Beginner Crabber', icon: '🌱', xp: 0 },
+        { name: 'Junior Crabber', icon: '🐟', xp: 20 },
+        { name: 'Crab Catcher', icon: '🎣', xp: 40 },
+        { name: 'Expert Crabber', icon: '🦀', xp: 60 },
+        { name: 'Master Crabber', icon: '👑', xp: 80 }
+    ];
+    
+    let currentXP = 0;
+    let lastLevel = 0;
+    
+    function addXP(amount) {
+        currentXP += amount;
+        updateLevel();
+        saveState();
+    }
+    
+    function updateLevel() {
+        let newLevelIndex = 0;
+        for (let i = 0; i < levels.length; i++) {
+            if (currentXP >= levels[i].xp) newLevelIndex = i;
+        }
+        const newLevel = levels[newLevelIndex];
+        document.getElementById('levelText').textContent = newLevel.name;
+        document.getElementById('levelIcon').textContent = newLevel.icon;
+        
+        const percent = newLevelIndex < levels.length - 1 
+            ? ((currentXP - newLevel.xp) / (levels[newLevelIndex + 1].xp - newLevel.xp)) * 100 
+            : 100;
+        document.getElementById('xpBar').style.width = Math.min(percent, 100) + '%';
+        
+        // Level up celebration!
+        if (newLevelIndex > lastLevel) {
+            const badge = document.getElementById('levelBadge');
+            badge.classList.add('level-up');
+            setTimeout(() => badge.classList.remove('level-up'), 600);
+            
+            if (newLevelIndex === levels.length - 1) {
+                // MASTER CRABBER! Trigger fireworks!
+                setTimeout(() => triggerFireworks(), 300);
+            } else {
+                createConfetti(30);
+            }
+        }
+        lastLevel = newLevelIndex;
+    }
+    
+    // ===== RANDOM TIPS =====
+    const crabFacts = [
+        'Crabs can regrow their claws!',
+        'Shore crabs are the most common in the UK!',
+        'Crabs smell with their antennas!',
+        'A group of crabs is called a cast!',
+        'Crabs walk sideways - it\'s faster!',
+        'Crabs have 10 legs!',
+        'The biggest crab can weigh 17kg!',
+        'Crabs breathe through gills!',
+        'Crabs have been around for 200 million years!',
+        'Some crabs can climb trees!'
+    ];
+    
+    function showRandomTip() {
+        const tip = crabFacts[Math.floor(Math.random() * crabFacts.length)];
+        document.getElementById('randomTipText').textContent = tip;
+        createConfetti(10);
+        addXP(2);
+    }
+    
+    // ===== TOGGLE FUNCTIONS =====
+    function toggleMission(el) {
+        el.classList.toggle('checked');
+        addXP(5);
+        const checked = document.querySelectorAll('.mission-item.checked').length;
+        if (checked === 4) {
+            createConfetti(50);
+            triggerFireworks();
+            addXP(30);
+        }
+    }
+    
+    function toggleTimeline(el) {
+        el.classList.toggle('done');
+        addXP(3);
+    }
+    
+    function toggleMethod(el) {
+        el.classList.toggle('done');
+        addXP(2);
+    }
+    
+    function toggleTip(el) {
+        el.classList.toggle('done');
+        addXP(2);
+    }
+    
+    function toggleFood(el) {
+        el.classList.toggle('selected');
+        addXP(1);
+    }
+    
+    function togglePacking(el) {
+        el.classList.toggle('checked');
+        updatePackingProgress();
+        addXP(3);
+    }
+    
+    function updatePackingProgress() {
+        const items = document.querySelectorAll('.checklist .check-item');
+        const checked = document.querySelectorAll('.checklist .check-item.checked').length;
+        const total = items.length;
+        const percent = (checked / total) * 100;
+        document.getElementById('packingProgress').style.width = percent + '%';
+        document.getElementById('packingText').textContent = checked === total 
+            ? '🎉 All packed!' 
+            : checked + ' of ' + total + ' packed';
+        if (checked === total) {
+            createConfetti(30);
+            addXP(10);
+        }
+    }
+    
+    // ===== CRAB ICON CLICK =====
+    document.getElementById('crabIcon').addEventListener('click', function() {
+        this.style.animation = 'none';
+        this.offsetHeight;
+        this.style.animation = 'crabSnap 0.3s ease-out';
+        addXP(1);
+    });
+    
+    // ===== SHAKE DETECTION =====
+    let lastShake = 0;
+    if (window.DeviceMotionEvent) {
+        window.addEventListener('devicemotion', function(e) {
+            const now = Date.now();
+            if (now - lastShake > 2000) {
+                const acc = e.accelerationIncludingGravity;
+                if (acc && (Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z)) > 30) {
+                    lastShake = now;
+                    showRandomTip();
+                }
+            }
+        });
+    }
+    
+    // ===== LOCAL STORAGE =====
+    function saveState() {
+        const state = {
+            mission: [...document.querySelectorAll('.mission-item')].map(el => el.classList.contains('checked')),
+            packing: [...document.querySelectorAll('.checklist .check-item')].map(el => el.classList.contains('checked')),
+            timeline: [...document.querySelectorAll('.timeline-item')].map(el => el.classList.contains('done')),
+            method: [...document.querySelectorAll('.method-step')].map(el => el.classList.contains('done')),
+            tips: [...document.querySelectorAll('.tip')].map(el => el.classList.contains('done')),
+            food: [...document.querySelectorAll('.food-item')].map(el => el.classList.contains('selected')),
+            xp: currentXP
+        };
+        localStorage.setItem('crabbingPlan', JSON.stringify(state));
+    }
+    
+    function loadState() {
+        const saved = localStorage.getItem('crabbingPlan');
+        if (!saved) return;
+        const state = JSON.parse(saved);
+        state.mission.forEach((v, i) => v && document.querySelectorAll('.mission-item')[i]?.classList.add('checked'));
+        state.packing.forEach((v, i) => v && document.querySelectorAll('.checklist .check-item')[i]?.classList.add('checked'));
+        state.timeline.forEach((v, i) => v && document.querySelectorAll('.timeline-item')[i]?.classList.add('done'));
+        state.method.forEach((v, i) => v && document.querySelectorAll('.method-step')[i]?.classList.add('done'));
+        state.tips.forEach((v, i) => v && document.querySelectorAll('.tip')[i]?.classList.add('done'));
+        state.food.forEach((v, i) => v && document.querySelectorAll('.food-item')[i]?.classList.add('selected'));
+        currentXP = state.xp || 0;
+        lastLevel = 0;
+        for (let i = 0; i < levels.length; i++) {
+            if (currentXP >= levels[i].xp) lastLevel = i;
+        }
+        updateLevel();
+        updatePackingProgress();
+    }
+    
+    // ===== INIT =====
+    // Clear saved progress to start fresh
+    localStorage.removeItem('crabbingDayPlan');
+    loadState();
+    document.querySelectorAll('.mission-item, .check-item, .timeline-item, .method-step, .tip, .food-item').forEach(el => {
+        el.addEventListener('click', saveState);
+    });
+    
+    // Handle window resize for fireworks
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+    </script>
+
+    <!-- AI Chat Modal -->
+    <div id="chatModal" class="chat-modal">
+        <div class="chat-header">
+            <span>🦀 AI Crab Expert</span>
+            <button onclick="closeChat()" style="background:none;border:none;color:white;font-size:1.5em;cursor:pointer;">×</button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-message bot">
+                <span class="chat-avatar">🦀</span>
+                <div class="chat-bubble">Hi! I'm your AI Crab Expert! Ask me anything about crabs, crabbing, or Rhyl Harbour! 🦀</div>
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chatInput" placeholder="Ask me about crabs..." onkeypress="if(event.key==='Enter')sendChatMessage()">
+            <button onclick="sendChatMessage()">Send</button>
+        </div>
+    </div>
+
+    <style>
+        .chat-modal {
+            position: fixed;
+            bottom: 80px;
+            right: 15px;
+            width: calc(100% - 30px);
+            max-width: 380px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            max-height: 500px;
+            overflow: hidden;
+        }
+        .chat-modal.active { display: flex; }
+        .chat-header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .chat-message { display: flex; align-items: flex-end; gap: 8px; }
+        .chat-message.user { flex-direction: row-reverse; }
+        .chat-avatar { font-size: 1.5em; }
+        .chat-bubble {
+            background: #f1f5f9;
+            padding: 10px 14px;
+            border-radius: 15px;
+            max-width: 75%;
+            line-height: 1.4;
+        }
+        .chat-message.user .chat-bubble {
+            background: #667eea;
+            color: white;
+        }
+        .chat-input-area {
+            display: flex;
+            gap: 8px;
+            padding: 12px;
+            border-top: 1px solid #eee;
+        }
+        .chat-input-area input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 25px;
+            font-size: 0.95em;
+            outline: none;
+        }
+        .chat-input-area input:focus { border-color: #667eea; }
+        .chat-input-area button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+    </style>
+
+    <script>
+    function openChat() {
+        document.getElementById('chatModal').classList.add('active');
+    }
+    function closeChat() {
+        document.getElementById('chatModal').classList.remove('active');
+    }
+    // Rate limiting to prevent spam
+    let lastMessageTime = 0;
+    const MESSAGE_COOLDOWN = 1000; // 1 second between messages
+    let isSending = false; // Prevent double-send
+
+    function sendChatMessage() {
+        if (isSending) return; // Prevent double-send
+        isSending = true;
+        
+        const now = Date.now();
+        if (now - lastMessageTime < MESSAGE_COOLDOWN) {
+            isSending = false;
+            return; // Ignore spam
+        }
+        lastMessageTime = now;
+        
+        const input = document.getElementById('chatInput');
+        if (!input) {
+            isSending = false;
+            return;
+        }
+        
+        let msg = input.value.trim();
+        if (!msg) {
+            isSending = false;
+            return;
+        }
+        
+        // Limit message length to prevent issues
+        if (msg.length > 500) {
+            msg = msg.substring(0, 500);
+        }
+        
+        // Escape HTML to prevent XSS
+        const safeMsg = escapeHtml(msg);
+        
+        addChatMessage(safeMsg, 'user');
+        input.value = '';
+        
+        // Simulate AI response with error handling
+        setTimeout(() => {
+            try {
+                const response = getAIResponse(msg);
+                addChatMessage(response, 'bot');
+            } catch (e) {
+                addChatMessage("Oops! Something went wrong. Try asking again! 🦀", 'bot');
+                console.error('Chat error:', e);
+            }
+            isSending = false; // Reset after response
+        }, 600);
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    let lastMessageId = ''; // Prevent duplicate messages
+    
+    function addChatMessage(text, type) {
+        if (!text) return;
+        const container = document.getElementById('chatMessages');
+        if (!container) return;
+        
+        // Prevent exact duplicate messages
+        const msgId = type + ':' + text.substring(0, 50);
+        if (msgId === lastMessageId) return;
+        lastMessageId = msgId;
+        
+        // Escape text to prevent XSS
+        const safeText = escapeHtml(text);
+        
+        const div = document.createElement('div');
+        div.className = 'chat-message ' + type;
+        div.innerHTML = '<span class="chat-avatar">' + (type === 'bot' ? '🦀' : '😊') + '</span><div class="chat-bubble">' + safeText + '</div>';
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+        
+        // Limit messages to 50 to prevent memory issues
+        while (container.children.length > 50) {
+            container.removeChild(container.firstChild);
+        }
+        
+        // Clear duplicate prevention after a delay
+        setTimeout(() => { lastMessageId = ''; }, 100);
+    }
+    function getAIResponse(msg) {
+        try {
+            // Safety check - ensure msg is a string
+            if (typeof msg !== 'string') {
+                return "I'm not sure how to answer that! 🦀 Try asking about crabs or crabbing!";
+            }
+            
+            // Ensure msg has reasonable length
+            if (msg.length > 500) {
+                msg = msg.substring(0, 500);
+            }
+            
+            const m = msg.toLowerCase();
+        // Crabbing specific
+        if (m.includes('crab') && (m.includes('bite') || m.includes('pinch'))) return "Crabs usually nibble rather than bite! They use their claws to pinch, but it's mostly harmless. Just keep still and let them explore! 🦀";
+        if ((m.includes('what') && m.includes('eat')) || m.includes('bait')) return "Crabs love bacon, bacon rind, raw fish, and prawns! Pro tip: tie bacon to your line and wait 5-10 minutes... they'll come running! 🥓";
+        if ((m.includes('where') || m.includes('find') || m.includes('spot')) && (m.includes('crab') || m.includes('harbour'))) return "At Rhyl Harbour, try near the harbour walls, rocks, and pier legs! Look for shallow water with rocks and seaweed. Ask locals where they catch! 📍";
+        if ((m.includes('how') && m.includes('catch')) || m.includes('catch crab')) return "Simple! Tie bacon to a string, lower it into the water, wait 5-10 min. When you see a crab grab it, pull up SLOWLY - sudden moves scare them! 🎣";
+        if ((m.includes('how') && m.includes('big')) || m.includes('size')) return "Shore crabs at Rhyl are usually 5-10cm. Edible crabs can get up to 25cm! Most you catch will be palm-sized. Big ones have massive claws! 📏";
+        if ((m.includes('best') || m.includes('time') || m.includes('when')) && (m.includes('go') || m.includes('tide') || m.includes('crab'))) return "Best during high tide on warm sunny days! Late afternoon is perfect. Low tide means less water and fewer crabs. Check tide times before you go! 🌊";
+        if (m.includes('rhy') || m.includes('harbour') || m.includes('wales') || m.includes('north wale')) return "Rhyl Harbour is in North Wales, UK! It's a popular seaside town with a lovely harbour. Crabbing is a top activity there. The harbour walls provide perfect crab-catching spots! 🏴󠁧󠁢󠁷󠁬󠁳󠁿";
+        if (m.includes('mangrove') || m.includes('fiddler')) return "Fiddler crabs are amazing! They have one tiny claw and one HUGE claw. Males wave their big claw to attract females. They're found in tropical mangrove swamps worldwide! 🌴";
+        if (m.includes('hermit')) return "Hermit crabs are clever! They don't grow their own shells - they find empty shells from dead snails. As they grow, they need bigger shells. If you see a shell-moving, it's a hermit crab looking for a new home! 🐚";
+        if (m.includes('shed') || m.includes('molt') || m.includes('shell')) return "Crabs shed their shells as they grow - called molting! The shell splits and the crab crawls out in a soft new shell that hardens. You might find empty shells on the beach - those are real shed crab shells! 🦀";
+        if (m.includes('survive') || m.includes('alive') || (m.includes('how') && m.includes('long') && m.includes('water'))) return "Crabs can survive 1-2 days out of water if kept moist! Use wet seaweed or newspaper. NEVER use freshwater - they'll drown! Salt water only! 💧";
+        if (m.includes('blue') || m.includes('blue crab')) return "Blue crabs are ocean crabs with bright blue claws! They're amazing swimmers - they flap their back legs like paddles. Found in the Atlantic, especially in America. Their claws can really pinch! 🦐";
+        if (m.includes('king crab') || m.includes('alaska')) return "King crabs are HUGE! They can weigh up to 10kg with leg spans over 1.5m! They live in cold deep waters in Alaska and Russia. A single leg could feed a whole family! 🦀";
+        if (m.includes('soft') && m.includes('shell')) return "Soft-shell crabs are crabs that just shed their old shell! Their new shell hasn't hardened yet. People eat the whole crab - shell and all! Very crunchy! 🦀";
+        // Safety and general
+        if (m.includes('safe') || m.includes('danger') || m.includes('warning')) return "Crabbing is super safe! Just: no running near water edges, hold crabs from the back (claws point away), always have an adult with you, and wear shoes on slippery rocks. Life jacket if near deep water! 👨👩👧🦀";
+        if (m.includes('slippery') || m.includes('fall')) return "Harbour walls can be very slippery! Wear shoes with good grip. Hold onto railings if available. Never lean over the edge. Stay back from the water's edge especially when pulling up lines! 👟";
+        if (m.includes('kid') || m.includes('child') || m.includes('young')) return "Crabbing is perfect for kids! Most children as young as 4-5 can do it with adult help. It's educational, exciting, and they learn about sea creatures! Great family activity! 👨👩👧";
+        // Rhyl specific
+        if ((m.includes('park') || m.includes('parking') || m.includes('drive')) && m.includes('rhy')) return "Rhyl has several car parks near the seafront. The main one is at Splash Seaforth. There's also street parking but it can get busy in summer. Best to arrive early on sunny days! 🚗";
+        if ((m.includes('toilet') || m.includes('bathroom') || m.includes('facility')) && m.includes('rhy')) return "Rhyl Harbour has public toilets nearby - check near the seafront promenade. There are also cafes and arcades with facilities. It's a tourist area so lots of options! 🏖️";
+        if ((m.includes('food') || m.includes('eat') || m.includes('lunch') || m.includes('cafe') || m.includes('restaurant')) && (m.includes('rhy') || m.includes('harbour'))) return "Rhyl seafront has lots of cafes and fish & chip shops! You can also bring a picnic. Many families have their crabbing picnic right by the harbour. Don't forget to bring snacks and drinks! 🍟";
+        if (m.includes('beach') && (m.includes('rhy') || m.includes('near'))) return "Rhyl has a great sandy beach next to the harbour! It's perfect for building sandcastles after crabbing. The water is shallow near the shore which makes crabbing easier too! 🏖️";
+        if (m.includes('fun') || m.includes('arcade')) return "Rhyl has lots of fun stuff! There's the Rhyl SeaQuarium, arcades, fairground rides, and the beautiful promenade. The children's amusement park is right near the beach! 🎢";
+        // Fun questions
+        if ((m.includes('how') && m.includes('many') && m.includes('crab')) || m.includes('population')) return "There are millions of crabs in the sea! Shore crabs are super common - you can find them under rocks all along the coastline. In a good spot, you might catch 10-20 crabs in one session! 🦀🦀🦀";
+        if (m.includes('smart') || m.includes('intelligent') || m.includes('brain')) return "Crabs are smarter than people think! They can learn to navigate mazes, remember places, and some even use tools! Hermit crabs pick the right sized shells. They're pretty clever! 🧠";
+        if (m.includes('swim') || m.includes('swimmer')) return "Most crabs CAN'T really swim - they walk along the seabed! But some, like spider crabs, are good swimmers. Swimming crabs like the Blue Crab use their back legs like paddles! 🏊";
+        if (m.includes('sleep') || m.includes('night') || m.includes('nocturnal')) return "Crabs are actually more active at night! That's why afternoon crabbing works well - they're waking up as the sun starts to set. During the day they hide under rocks and seaweed. 🌙";
+        if (m.includes('predator') || m.includes('enemy') || (m.includes('eat') && m.includes('crab'))) return "Crabs have lots of predators! Seals, octopuses, large fish, seabirds like gulls, and even other crabs! That's why they hide in rocky spots and have strong shells! 🦅🐟";
+        if (m.includes('species') || m.includes('type') || m.includes('kind')) return "There are over 4,000 species of crabs! Common ones: Shore Crab (green/brown), Edible Crab (big, orange), Hermit Crab (uses shells), Fiddler Crab (one big claw). At Rhyl you'll mostly catch Shore Crabs! 🦀";
+        if (m.includes('ancient') || m.includes('dinosaur') || m.includes('million') || m.includes('year')) return "Crabs have been around for over 200 MILLION years! They existed before dinosaurs! They've survived ice ages, volcanic eruptions, and mass extinctions. Ancient crabs looked different - they've evolved a lot! ⏳";
+        if (m.includes('joke') || m.includes('funny')) return "Why did the crab never share his food? Because he's a little shellfish! 🦀😄 Also: What do you call a crab that tells jokes? A pun-dit! Get it? Shellfish + pun! Hahahaha! 🦀";
+        // Greetings and chat
+        if (m.includes('hi') || m.includes('hello') || m.includes('hey') || m.includes('yo')) return "Hello there! 👋🦀 I'm your AI Crab Expert! Ask me anything about crabs, crabbing at Rhyl, or sea creatures! What's on your mind?";
+        if (m.includes('thank') || m.includes('thanks')) return "You're welcome! 🦀 Have an amazing crabbing adventure at Rhyl! Don't forget to take photos and release the crabs safely afterward! 📸🐚";
+        if (m.includes('bye') || m.includes('goodbye') || m.includes('see ya')) return "Bye bye! 👋🦀 Have fun crabbing at Rhyl Harbour! Come back and tell me about your catch! I'd love to hear your stories!";
+        if (m.includes('name')) return "I'm the AI Crab Expert! 🦀 I know EVERYTHING about crabs, crabbing, and Rhyl Harbour! Ask me about catching crabs, crab facts, or anything else!";
+        if (m.includes('cool') || m.includes('awesome') || m.includes('amazing')) return "You're pretty awesome too! 🦀 Thanks for being curious about crabs! The best crabbers are the ones who love learning about sea creatures! Keep exploring! 🌊";
+        // Science and nature
+        if (m.includes('salt') && m.includes('water')) return "Crabs need salt water to survive! Their bodies are designed for ocean salinity. Fresh water will kill them within hours. Always use real seawater or make saltwater (3 tablespoons of salt per litre). Never use tap water! 🧂";
+        if (m.includes('gill') || m.includes('breath') || m.includes('oxygen')) return "Crabs breathe through gills! Their gills are like fish gills - they extract oxygen from water. This is why they need to stay wet. Some crabs can breathe air too, but they still need moist gills! 🌬️";
+        if (m.includes('eye') || m.includes('see') || m.includes('vision')) return "Crabs have compound eyes on stalks! They can see in almost every direction at once. Each eye has thousands of lenses! They can see ultraviolet light too! 👀";
+        if (m.includes('feel') || m.includes('touch') || m.includes('sens')) return "Crabs are very sensitive! They have tiny hairs all over their body that detect movement in the water. Their antennae sense chemicals - like smell and taste combined! Very feelers! 🦀";
+        // Questions about the app
+        if (m.includes('app') || (m.includes('this') && m.includes('plan'))) return "This is your Rhyl Crabbing Day Plan! 🦀 It has everything: timeline, packing checklist, how to catch crabs, tips, and even an AI expert! Tap items to check them off and earn XP!";
+        if (m.includes('xp') || m.includes('point') || m.includes('level')) return "XP = Experience Points! 🌟 You earn XP by checking off items in your plan. More XP = higher level! Start as Beginner, work up to Expert Crabber! Level up your crabbing skills!";
+        // Default - be helpful
+        return "That's a great question about crabs! 🦀 I know lots about crabbing at Rhyl Harbour! Try asking about: catching crabs, what they eat, best spots, safety tips, or crab facts! Keep exploring and learning!";
+        } catch(e) {
+            return "Oops! I got confused there! 🦀 Try asking something else about crabs!";
+        }
+    }
+    </script>
+</body>
+</html>
